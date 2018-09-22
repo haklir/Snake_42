@@ -26,7 +26,7 @@ pg.init()
 
 # Images and sounds
 os.chdir("media")
-BACK = pg.image.load('back.png')  # black 20x20 square, used for resetting
+BACK = pg.image.load('back.png')  # Black 20x20 square, used for resetting.
 FOOD = pg.image.load('food.png')
 SUPERFOOD = pg.image.load('SUPERFOOD.png')
 GREEN_SNAKE = pg.image.load('snake1.png')
@@ -49,11 +49,15 @@ GREEN_SNAKE_BOX = Rect(260, 400, 30, 30)
 ORANGE_SNAKE_BOX = Rect(310, 400, 30, 30)
 MUSIC_BOX = Rect(226, 470, 152, 35)
 
+# Display
+SCREEN = pg.display.set_mode((600, 630))
+STATUS_BAR = Rect(0, 600, 600, 30)
+
 levels = []
 
 
 def random_level(n):
-    """ Creates a level with n randomly placed walls """
+    """ Creates a level with n randomly placed walls. """
     level = []
     while len(level) < n:
         wall = (randint(0, 14) * 40, randint(0, 29) * 20)
@@ -93,5 +97,4 @@ _7 = []
 
 if __name__ == '__main__':
     for lvl in levels:
-        # print(lvl)
-        pass
+        print(lvl)
