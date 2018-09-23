@@ -3,20 +3,31 @@
 ## SNAKE 42 ##
 ## -------- ##
 """
+import os
 import sys
+from re import search
 from random import randint
 from pygame.locals import *
 import pygame as pg
 import snake_data as data
+
+# TODO: Volume sliders
+# TODO: display highscores in menu (at least top 3)
+# TODO: find more TODOs
 
 
 class Game:
     """
     Game class. Contains methods:
      - main(self) -> name, snake_color
+       - This runs the main menu.
+       - Should be refactored to smaller chunks (helper functions?)
      - pause(self) -> Boolean
+       - Logic for pause control when player presses K_p
      - place_food(self) -> None
+       - Places food on the field
      - change_level(self, level) -> None
+       - Runs whenever player advances a level
     """
 
     food_is_super = False
@@ -24,6 +35,8 @@ class Game:
     play_music = True
 
     def __init__(self):
+        # TODO: write settings.txt and save previously used values in there
+        # TODO: ^ name, color, music on/off ^
         self.height = 600
         self.width = 600
         self.speed = 6
@@ -191,7 +204,7 @@ class Game:
         draw_text_box('', Rect(0, 0, self.width, self.height), box_color=data.BLACK)
 
         # Move snake to start.
-        player.snake = [(140, 100), (160, 100), (180, 100), (200, 100)]
+        player.snake = data.STARTING_SQUARES
         for position in player.snake:
             data.SCREEN.blit(player.img, position)
 
@@ -369,19 +382,24 @@ def wanna_quit():
 def update_highscores():
     """ Updates and keeps record of 10 highest scores. """
 
-    with open('highscores.txt', 'r') as file:
-        score_data = file.read().split('\n')
-    for i in range(10):
-        score_data[i] = score_data[i].split('- -')
-    i = 0
-    while game.score <= int(score_data[i][1]):
-        i += 1
-        if i == 10:
-            break
-    score_data.insert(i, [player.name, str(game.score)])
-    with open('highscores.txt', 'w') as file:
-        for line in score_data[:10]:
-            file.write('- -'.join(line) + '\n')
+    score_entry = f'{player.name}- -{game.score}'
+    score_file = 'highscores.txt'
+    highscores = score_entry
+
+    if os.path.isfile(score_file):
+        with open(score_file, 'r') as file:
+            score_data = file.read()
+
+        if score_data:
+            score_data = score_data.split('\n')
+            for line in score_data:
+                if game.score > int(search(r'(?<=- -)\d+$', line).group()):
+                    score_data.insert(score_data.index(line), score_entry)
+                    break
+            highscores = '\n'.join(score_data[:10])
+
+    with open(score_file, 'w') as file:
+        file.write(highscores)
 
 
 if __name__ == '__main__':

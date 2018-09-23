@@ -1,18 +1,19 @@
 # ------------------------------------ #
 # LEVEL AND CONSTANT DATA FOR SNAKE 42 #
 # ------------------------------------ #
-# field is
-#
-#
-#
-#
+# Field is 30x30 squares. Each square is 20x20 pixels.
+# Bottom of the screen has a 30 pixel tall status bar when playing.
+# --> total screen size is 600x630 pixels.
+
 
 import os
 import pygame as pg
 from random import randint
 from pygame.locals import *
 
-# Colors
+pg.init()
+
+# Colors in rgb format
 GREEN = (13, 89, 28)
 LIGHTGREEN = (34, 177, 76)
 ORANGE = (255, 127, 39)
@@ -21,8 +22,6 @@ YELLOW = (229, 212, 57)
 RED = (239, 14, 14)
 BLUE = (72, 92, 242)
 BLACK = (0, 0, 0)
-
-pg.init()
 
 # Images and sounds
 os.chdir("media")
@@ -53,6 +52,9 @@ MUSIC_BOX = Rect(226, 470, 152, 35)
 SCREEN = pg.display.set_mode((600, 630))
 STATUS_BAR = Rect(0, 600, 600, 30)
 
+# Other constants
+STARTING_SQUARES = [(140, 100), (160, 100), (180, 100), (200, 100)]
+
 levels = []
 
 
@@ -61,9 +63,7 @@ def random_level(n):
     level = []
     while len(level) < n:
         wall = (randint(0, 14) * 40, randint(0, 29) * 20)
-        if wall in [(140, 100), (160, 100), (180, 100), (200, 100), (220, 100), (240, 100)]:
-            continue
-        else:
+        if wall not in STARTING_SQUARES + [(220, 100), (240, 100)] + level:
             level.append(wall)
     return level
 
