@@ -19,9 +19,8 @@ import snake_data as data
 class Game:
     """
     Game class. Contains methods:
-     - main(self) -> name, snake_color
+     - main_menu(self) -> name, snake_color
        - This runs the main menu.
-       - Should be refactored to smaller chunks (helper functions?)
      - pause(self) -> Boolean
        - Logic for pause control when player presses K_p
      - place_food(self) -> None
@@ -32,11 +31,13 @@ class Game:
 
     food_is_super = False
     food_position = (300, 300)
-    play_music = True
+    with open("settings.txt", "r") as file:
+        settings = file.read()
+        play_music = False if search(r'(?<=music_on=).*', settings).group() == "False" else True
+        # First eval returns string in form 'data.GREEN_SNAKE'. Second returns actual Surface
+        snake_color = eval(eval("search(r'(?<=snake_color=).*', settings).group()"))
 
     def __init__(self):
-        # TODO: write settings.txt and save previously used values in there
-        # TODO: ^ name, color, music on/off ^
         self.height = 600
         self.width = 600
         self.speed = 6
@@ -46,14 +47,8 @@ class Game:
         pg.mouse.set_visible(True)
         data.SCREEN.fill(data.BLACK)
 
-    def main(self):
-        """ Main menu loop etc. This method is way too large... """
-
-        name = 'Snakey'  # default name
-        name_input_color = data.GREEN
-        name_input_active = False
-        finished = False
-        snake_color = data.GREEN_SNAKE
+    def _draw_main_menu(self):
+        """ Used to draw initial main menu and fetch name and snake_color settings. Returns name from settings.txt. """
 
         data.SCREEN.fill(data.BLACK)
         draw_text_box('title:SNAKE 42', Rect(300, 70, 0, 0), data.RED)
@@ -66,70 +61,41 @@ class Game:
         music_text = "Music off" if self.play_music else "Music on"
         draw_text_box(music_text, data.MUSIC_BOX, text_color=data.RED)
 
-        # Logic and loop for data.NAME_BOX and color choosing.
-        while not finished:
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    if wanna_quit():
-                        sys.exit()
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    if data.START_BOX.collidepoint(event.pos):
-                        finished = True
-                    elif data.MUSIC_BOX.collidepoint(event.pos):
-                        self.play_music = not self.play_music
-                        if self.play_music:
-                            data.MUSIC.play(-1)
-                        else:
-                            data.MUSIC.stop()
-                        music_text = "Music off" if self.play_music else "Music on"
-                        draw_text_box(music_text, data.MUSIC_BOX, text_color=data.RED)
-                    if data.NAME_BOX.collidepoint(event.pos):
-                        name_input_active = True
-                        name_input_color = data.BLUE
-                    else:
-                        name_input_active = False
-                        name_input_color = data.GREEN
-                    if data.GREEN_SNAKE_BOX.collidepoint(event.pos):
-                        snake_color = data.GREEN_SNAKE
-                    elif data.ORANGE_SNAKE_BOX.collidepoint(event.pos):
-                        snake_color = data.ORANGE_SNAKE
-                if event.type == pg.KEYDOWN:
-                    if event.key == K_ESCAPE:
-                        if wanna_quit():
-                            sys.exit()
-                        else:
-                            pg.mouse.set_visible(True)
-                    elif name_input_active:
-                        if event.key == pg.K_RETURN:
-                            name_input_active = False
-                            name_input_color = data.GREEN
-                        elif event.key == pg.K_BACKSPACE:
-                            name = name[:-1]
-                        else:
-                            name += event.unicode
+        with open('settings.txt', 'r') as file:
+            settings = file.read()
 
-            # Draw data.BLUE border around chosen snake_color box.
-            if snake_color == data.GREEN_SNAKE:
-                pg.draw.rect(data.SCREEN, data.BLUE, data.GREEN_SNAKE_BOX, 2)
-                pg.draw.rect(data.SCREEN, data.BLACK, data.ORANGE_SNAKE_BOX, 2)
-            else:
-                pg.draw.rect(data.SCREEN, data.BLACK, data.GREEN_SNAKE_BOX, 2)
-                pg.draw.rect(data.SCREEN, data.BLUE, data.ORANGE_SNAKE_BOX, 2)
+        name = search(r'(?<=name=)[^\n]*', settings).group()
+        return name
 
-            name_width = data.FONT.size(name)[0]
-            # Set w and h larger to clear old borders and name.
-            data.NAME_BOX.w += 5
-            data.NAME_BOX.h += 5
-            draw_text_box('', data.NAME_BOX, data.BLACK, data.BLACK)
-            data.NAME_BOX.h -= 5
-            # Set data.NAME_BOX width to match name_width.
-            data.NAME_BOX.w = max(100, name_width+15)
-            data.NAME_BOX.x = 300 - data.NAME_BOX.w/2
-            # Draw name in data.NAME_BOX.
-            draw_text_box(name, data.NAME_BOX, data.RED, name_input_color, 2)
+    @staticmethod
+    def _update_main_menu(name, name_input_color):
+        """ Draws updated main menu. Used inside main_menu method. """
+        # Draw data.BLUE border around chosen snake_color box.
+        if game.snake_color == data.GREEN_SNAKE:
+            pg.draw.rect(data.SCREEN, data.BLUE, data.GREEN_SNAKE_BOX, 2)
+            pg.draw.rect(data.SCREEN, data.BLACK, data.ORANGE_SNAKE_BOX, 2)
+        else:
+            pg.draw.rect(data.SCREEN, data.BLACK, data.GREEN_SNAKE_BOX, 2)
+            pg.draw.rect(data.SCREEN, data.BLUE, data.ORANGE_SNAKE_BOX, 2)
 
-            pg.display.update()
-            pg.time.delay(30)
+        name_width = data.FONT.size(name)[0]
+        # Set w and h larger to clear old borders and name.
+        data.NAME_BOX.w += 5
+        data.NAME_BOX.h += 5
+        draw_text_box('', data.NAME_BOX, data.BLACK, data.BLACK)
+        data.NAME_BOX.h -= 5
+        # Set data.NAME_BOX width to match name_width.
+        data.NAME_BOX.w = max(100, name_width + 15)
+        data.NAME_BOX.x = 300 - data.NAME_BOX.w / 2
+        # Draw name in data.NAME_BOX.
+        draw_text_box(name, data.NAME_BOX, data.RED, name_input_color, 2)
+
+        pg.display.update()
+
+    @staticmethod
+    def _close_main_menu(name):
+        """ Runs when game is started. """
+        pg.mouse.set_visible(False)
 
         # Animation of menu sliding up.
         bottom = 600
@@ -148,11 +114,65 @@ class Game:
         text_surface = data.SMALL_FONT.render(name, True, data.RED)
         data.SCREEN.blit(text_surface, (10, 605))
         draw_text_box('small:0', Rect(580, 600, 0, 0), data.RED, data.GREY)
-        for wall in self.walls:
+        for wall in game.walls:
             data.SCREEN.blit(data.BRICK, wall)
 
-        pg.mouse.set_visible(False)
-        return name, snake_color
+    def main_menu(self):
+        """ Main menu loop etc. This method is way too large... """
+        finished = False
+        name_input_color = data.GREEN
+        name_input_active = False
+        name = self._draw_main_menu()
+
+        # Logic and loop for data.NAME_BOX and color choosing.
+        while not finished:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    if wanna_quit():
+                        sys.exit()
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    if data.START_BOX.collidepoint(event.pos):
+                        finished = True
+                    elif data.MUSIC_BOX.collidepoint(event.pos):
+                        # noinspection PyAttributeOutsideInit
+                        self.play_music = not self.play_music
+                        if self.play_music:
+                            data.MUSIC.play(-1)
+                        else:
+                            data.MUSIC.stop()
+                        music_text = "Music off" if self.play_music else "Music on"
+                        draw_text_box(music_text, data.MUSIC_BOX, text_color=data.RED)
+                    if data.NAME_BOX.collidepoint(event.pos):
+                        name_input_active = True
+                        name_input_color = data.BLUE
+                    else:
+                        name_input_active = False
+                        name_input_color = data.GREEN
+                    if data.GREEN_SNAKE_BOX.collidepoint(event.pos):
+                        self.snake_color = data.GREEN_SNAKE
+                    elif data.ORANGE_SNAKE_BOX.collidepoint(event.pos):
+                        # noinspection PyAttributeOutsideInit
+                        self.snake_color = data.ORANGE_SNAKE
+                if event.type == pg.KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        if wanna_quit():
+                            sys.exit()
+                        else:
+                            pg.mouse.set_visible(True)
+                    elif name_input_active:
+                        if event.key == pg.K_RETURN:
+                            name_input_active = False
+                            name_input_color = data.GREEN
+                        elif event.key == pg.K_BACKSPACE:
+                            name = name[:-1]
+                        elif len(name) < 15:
+                            name += event.unicode
+
+            self._update_main_menu(name, name_input_color)
+            pg.time.delay(30)
+
+        self._close_main_menu(name)
+        return name
 
     def pause(self):
         """ Pauses game when p is pressed during play. Game continues when p is pressed again. """
@@ -180,7 +200,8 @@ class Game:
                         return
             pg.time.delay(50)
 
-    def place_food(self):
+    @staticmethod
+    def place_food():
         """ Places new food in a random free spot. """
 
         Game.food_is_super = False
@@ -238,14 +259,14 @@ class Game:
 class Player:
     """ Class for creating a player. Contains only move method."""
 
-    def __init__(self, name, snake_color):
+    def __init__(self, name):
         self.name = name
         self.snake = [(140, 100), (160, 100), (180, 100), (200, 100)]
+        self.img = game.snake_color
         for position in self.snake:
-            data.SCREEN.blit(snake_color, position)
+            data.SCREEN.blit(self.img, position)
         self.vx = 20
         self.vy = 0
-        self.img = snake_color
         self.lvl = 0
         pg.display.update()
 
@@ -402,13 +423,25 @@ def update_highscores():
         file.write(highscores)
 
 
+def save_settings():
+    """ Saves selected settings into settings.txt. """
+    snake_color = "data.GREEN_SNAKE" if game.snake_color == data.GREEN_SNAKE else "data.ORANGE_SNAKE"
+
+    with open("settings.txt", "w") as file:
+        file.write(f"name={player.name}\n"
+                   f"music_on={game.play_music}\n"
+                   f"snake_color={snake_color}")
+
+
 if __name__ == '__main__':
     pg.mixer.init()
     pg.mouse.set_cursor((8, 8), (4, 4), (24, 24, 24, 231, 231, 24, 24, 24), (0, 0, 0, 0, 0, 0, 0, 0))
-    data.MUSIC.play(-1)
     while True:
         game = Game()
-        player = Player(*game.main())
+        if game.play_music:
+            data.MUSIC.play(-1)
+        player = Player(game.main_menu())  # main_menu returns name
+        save_settings()
         pg.time.delay(500)
         while game.playing:
             player.move()
