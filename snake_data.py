@@ -54,6 +54,7 @@ STATUS_BAR = Rect(0, 600, 600, 30)
 
 # Other constants
 STARTING_SQUARES = [(140, 100), (160, 100), (180, 100), (200, 100)]
+DEFAULT_NAME = "Snakey"
 
 levels = []
 

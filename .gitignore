@@ -1,5 +1,7 @@
 README_local.txt
+*settings.txt
 highscores.txt
 .idea
 __pycache__
 test
+*Test.py

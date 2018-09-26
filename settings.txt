@@ -1,3 +1,0 @@
-name=Rikuktsi
-music_on=False
-snake_color=data.ORANGE_SNAKE
